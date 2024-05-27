@@ -4,7 +4,7 @@ import "./header.css";
 import { icons } from "../constants";
 const Header = () => {
   return (
-    <View className="fixed  flex justify-center items-center top-0 left-0 w-full gradient z-50 bg-[#2051e5] h-[110px] rounded-br-md rounded-bl-md">
+    <View className="fixed  flex justify-center items-center top-0 left-0 w-full gradient z-50 bg-[#2051e5] h-[110px] rounded-br-xl rounded-bl-xl">
       {/*
       <StatusBar hidden />
 */}
