@@ -46,8 +46,8 @@ const EventCard = ({ poste, motif, nom, color }) => {
               <View className="flex flex-row">
                 <Image
                   source={icons.calendar}
-                  resizeMethod="cover"
-                  className="mr-4"
+                  resizeMethod="contain"
+                  className="mr-1 w-[20px]"
                 />
                 <Text>12 Juin 2024</Text>
               </View>

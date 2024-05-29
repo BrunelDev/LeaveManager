@@ -12,7 +12,7 @@ module.exports = {
           200: "#232533",
         },
 
-        gray: "#445668",
+        grey: "#445668",
       },
       fontFamily: {
         pthin: ["Poppins-Thin", "sans-serif"],

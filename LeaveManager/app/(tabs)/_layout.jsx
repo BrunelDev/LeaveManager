@@ -9,11 +9,11 @@ import { Plus, History, Home } from "lucide-react-native";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const TabBaricon = ({ icon, title }) => {
+  const TabBaricon = ({ icon, title, color }) => {
     return (
       <View className="mt-[10px] flex justify-center items-center">
         {icon}
-        <Text>{title}</Text>
+        <Text style={{ color: color }}>{title}</Text>
       </View>
     );
   };
@@ -40,8 +40,9 @@ export default function TabLayout() {
           title: "Home",
           tabBarIcon: ({ color, focused }) => (
             <TabBaricon
+              color={color}
               title={"Accueil"}
-              icon={<Home size={36} color={color} />}
+              icon={<Home size={32} color={color} className="mt-3" />}
             />
           ),
         }}
@@ -53,10 +54,11 @@ export default function TabLayout() {
           title: "Create",
           tabBarIcon: ({ color, focused }) => (
             <TabBaricon
-              title={"Ajouter"}
+              color={color}
+              title={""}
               icon={
-                <View className="bg-[#2051E5] w-full p-1 rounded-full">
-                  <Plus size={36} color="white" />
+                <View className="bg-[#2051E5] w-full p-1 rounded-full mt-3 scale-[1.1]">
+                  <Plus size={45} color="white" className="" />
                 </View>
               }
             />
@@ -70,8 +72,9 @@ export default function TabLayout() {
           title: "Historique",
           tabBarIcon: ({ color, focused }) => (
             <TabBaricon
+              color={color}
               title={"Historique"}
-              icon={<History size={36} color={color} />}
+              icon={<History size={32} color={color} className="mt-3" />}
             />
           ),
         }}
