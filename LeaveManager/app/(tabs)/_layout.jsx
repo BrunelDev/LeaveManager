@@ -1,19 +1,23 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { View, Text } from "react-native";
-
-import { TabBarIcon } from "@/components/navigation/TabBarIcon";
-import { Colors } from "@/constants/Colors";
+import { View, Text, Platform } from "react-native";
+import { Entypo } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { Plus, History, Home } from "lucide-react-native";
+import { Feather } from "@expo/vector-icons";
 
 export default function TabLayout() {
+  let isAndroid = Platform.OS === "android";
   const colorScheme = useColorScheme();
-  const TabBaricon = ({ icon, title, color }) => {
+  const TabBarIcon = ({ icon, title, color }) => {
     return (
-      <View className="mt-[10px] flex justify-center items-center">
+      <View
+        className={`flex justify-center items-center ${
+          isAndroid ? "" : "translate-y-2"
+        }`}
+      >
         {icon}
-        <Text style={{ color: color }}>{title}</Text>
+        {<Text style={{ color: color }}>{title}</Text>}
       </View>
     );
   };
@@ -27,7 +31,7 @@ export default function TabLayout() {
           //backgroundColor: "#161622",
           borderTopWidth: 1,
           borderTopColor: "#EEF0F3",
-          height: 84,
+          height: isAndroid ? 52 : 80,
         },
         headerShown: false,
         tabBarShowLabel: false,
@@ -36,13 +40,16 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
+          tabBarHideOnKeyboard: true,
           headerShown: false,
           title: "Home",
           tabBarIcon: ({ color, focused }) => (
-            <TabBaricon
+            <TabBarIcon
               color={color}
               title={"Accueil"}
-              icon={<Home size={32} color={color} className="mt-3" />}
+              icon={
+                <Entypo name="home" size={isAndroid ? 28 : 30} color={color} />
+              }
             />
           ),
         }}
@@ -50,15 +57,27 @@ export default function TabLayout() {
       <Tabs.Screen
         name="create"
         options={{
+          tabBarHideOnKeyboard: true,
           headerShown: false,
           title: "Create",
           tabBarIcon: ({ color, focused }) => (
-            <TabBaricon
+            <TabBarIcon
               color={color}
               title={""}
               icon={
-                <View className="bg-[#2051E5] w-full p-1 rounded-full mt-3 scale-[1.1]">
-                  <Plus size={45} color="white" className="" />
+                <View
+                  className={`bg-[#2051E5] ${
+                    isAndroid ? "w-[44px] h-[44px]" : "w-[50px] h-[50px]"
+                  }
+                 flex justify-center items-center p-1 ${
+                   isAndroid ? "translate-y-2" : "translate-y-1"
+                 } rounded-full`}
+                >
+                  <Feather
+                    name="plus"
+                    size={isAndroid ? 35 : 40}
+                    color="white"
+                  />
                 </View>
               }
             />
@@ -66,15 +85,23 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="account"
         options={{
+          tabBarHideOnKeyboard: true,
+
           headerShown: false,
-          title: "Historique",
+          title: "Account",
           tabBarIcon: ({ color, focused }) => (
-            <TabBaricon
+            <TabBarIcon
               color={color}
-              title={"Historique"}
-              icon={<History size={32} color={color} className="mt-3" />}
+              title={"Compte"}
+              icon={
+                <MaterialCommunityIcons
+                  name="account"
+                  size={isAndroid ? 28 : 30}
+                  color={color}
+                />
+              }
             />
           ),
         }}

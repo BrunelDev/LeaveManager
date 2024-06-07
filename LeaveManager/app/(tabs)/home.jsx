@@ -1,22 +1,12 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  FlatList,
-  SafeAreaView,
-} from "react-native";
-import DayCard from "../../components/dayCard";
+import { View, FlatList, SafeAreaView } from "react-native";
 import React, { useEffect, useState } from "react";
 import EventCard from "../../components/eventCard";
 import DaysList from "../../components/daysList";
-import EventList from "../../components/eventList";
 import Header from "../../components/header";
 import * as Notifications from "expo-notifications";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalStorage } from "../../hooks/context";
 import FilterButton from "../../components/onglet";
-
+import { getDatas, schedulePushNotification } from "../../lib/functions";
 // First, set the handler that will cause the notification
 // to show the alert
 
@@ -29,54 +19,80 @@ Notifications.setNotificationHandler({
 });
 
 // Second, call the method
-
-Notifications.scheduleNotificationAsync({
-  content: {
-    title: "Nouvelle notification",
-    body: "Bientot en congés",
-  },
-  trigger: { seconds: 5 },
-});
+for (let i = 0; i <= 6; i++) {
+  schedulePushNotification("Test1", "corps de notif", { seconds: 2 })
+    .then((res) => {})
+    .catch((e) => {
+      console.warn(e);
+    });
+}
 
 const Home = () => {
   const { eventsDatas } = useLocalStorage();
 
-  const color = ["blue", "red", "yellow"];
-  const [employeesDatas, setEmployeesDatas] = useState([
-    { poste: "Caissier", nom: "TOSSOU Roger", motif: "congés" },
-  ]);
-  const getDatas = async () => {
-    let data = await AsyncStorage.getItem("@myapp:list");
-    console.log(data);
-    if (!data) {
-      return;
-    } else {
-      data = JSON.parse(data);
-      console.log(data);
-      return data;
-    }
-  };
+  const color = ["blue", "red", "orange"];
+  const [employeesDatas, setEmployeesDatas] = useState([]);
+
   const [tempData, setTempData] = useState(employeesDatas);
   useEffect(() => {
     getDatas().then((res) => {
       setEmployeesDatas(res);
-      console.log(eventsDatas);
+      if (filterAll) {
+        setTempData(res);
+      }
+      if (filterComing) {
+        getComingEvent(res);
+      }
+      if (filterOngoing) {
+        getOngoingEvent(res);
+      }
     });
   }, [eventsDatas]);
-  const [filterAll, setFilterAll] = useState(false);
+  const [filterAll, setFilterAll] = useState(true);
   const [filterOngoing, setFilterOngoing] = useState(false);
   const [filterComing, setFilterComing] = useState(false);
+  const [filterCompleted, setFilterCompleted] = useState(false);
+
+  const getOngoingEvent = (data = employeesDatas) => {
+    let temp = [];
+    data.map((item) => {
+      if (
+        new Date().getTime() >= new Date(item.startDate).getTime() &&
+        new Date().getTime() < new Date(item.endDate).getTime()
+      ) {
+        temp.push(item);
+      }
+    });
+    setTempData((v) => temp);
+  };
+  const getComingEvent = (data = employeesDatas) => {
+    let temp = [];
+    data.map((item) => {
+      if (new Date().getTime() < new Date(item.startDate).getTime()) {
+        temp.push(item);
+      }
+    });
+    setTempData(temp);
+  };
+  const getCompletedEvent = (data = employeesDatas) => {
+    let temp = [];
+    data.map((item) => {
+      if (new Date().getTime() >= new Date(item.endDate).getTime()) {
+        temp.push(item);
+      }
+    });
+    setTempData(temp);
+  };
   return (
     <View>
       <Header />
 
       <SafeAreaView className="bg-white h-full">
+        {/*d7dfe1*/}
         <FlatList
           className="h-full mb-[230px]"
-          data={employeesDatas}
-          keyExtractor={(item) => {
-            item.nom;
-          }}
+          data={tempData}
+          keyExtractor={(item) => item.id}
           renderItem={({ item, index }) => {
             return (
               <View className="my-3 w-full flex justify-center items-center">
@@ -84,6 +100,9 @@ const Home = () => {
                   poste={item.poste}
                   motif={item.motif}
                   nom={item.nom}
+                  startDate={item.startDate}
+                  endDate={item.endDate}
+                  id={item.id}
                   color={color[index % 3]}
                 />
               </View>
@@ -103,9 +122,15 @@ const Home = () => {
                       if (filterComing) {
                         setFilterComing(false);
                       }
-                      setFilterAll((v) => !v);
+                      if (filterCompleted) {
+                        setFilterCompleted(false);
+                      }
+                      setFilterAll((v) => true);
                     }}
                     isSelected={filterAll}
+                    handlePress={() => {
+                      setTempData(employeesDatas);
+                    }}
                   />
                   <FilterButton
                     title={"En cours"}
@@ -116,9 +141,15 @@ const Home = () => {
                       if (filterComing) {
                         setFilterComing(false);
                       }
-                      setFilterOngoing((v) => !v);
+                      if (filterCompleted) {
+                        setFilterCompleted(false);
+                      }
+                      setFilterOngoing((v) => true);
                     }}
                     isSelected={filterOngoing}
+                    handlePress={() => {
+                      getOngoingEvent();
+                    }}
                   />
                   <FilterButton
                     title={"A venir"}
@@ -129,9 +160,34 @@ const Home = () => {
                       if (filterOngoing) {
                         setFilterOngoing(false);
                       }
-                      setFilterComing((v) => !v);
+                      if (filterCompleted) {
+                        setFilterCompleted(false);
+                      }
+                      setFilterComing((v) => true);
                     }}
                     isSelected={filterComing}
+                    handlePress={() => {
+                      getComingEvent();
+                    }}
+                  />
+                  <FilterButton
+                    title={"Terminés"}
+                    setIsSelected={() => {
+                      if (filterAll) {
+                        setFilterAll(false);
+                      }
+                      if (filterOngoing) {
+                        setFilterOngoing(false);
+                      }
+                      if (filterComing) {
+                        setFilterComing(false);
+                      }
+                      setFilterCompleted((v) => true);
+                    }}
+                    isSelected={filterCompleted}
+                    handlePress={() => {
+                      getCompletedEvent();
+                    }}
                   />
                 </View>
               </View>

@@ -1,35 +1,23 @@
-import { Text, View, Button, Platform } from "react-native";
-
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { Platform } from "react-native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState, useRef } from "react";
-import "react-native-reanimated";
+import { useEffect, useRef } from "react";
 import * as Device from "expo-device";
-
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
-
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { useNotification, useLocalStorage } from "@/hooks/context";
+import { addReminder, createID } from "@/lib/functions";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [expoPushToken, setExpoPushToken] = useState("");
-  const [channels, setChannels] = useState<Notifications.NotificationChannel[]>(
-    []
-  );
-  const [notification, setNotification] = useState<
-    Notifications.Notification | undefined
-  >(undefined);
+  const { setExpoPushToken, setChannels, setNotification } = useNotification();
+
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
+  const { setNotifsDatas } = useLocalStorage();
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(
@@ -37,18 +25,28 @@ export default function RootLayout() {
     );
 
     if (Platform.OS === "android") {
-      Notifications.getNotificationChannelsAsync().then((value) =>
-        setChannels(value ?? [])
-      );
+      Notifications.getNotificationChannelsAsync()
+        .then((value) => setChannels(value ?? []))
+        .catch((e) => {
+          console.warn(e);
+        });
     }
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
         setNotification(notification);
+        addReminder(
+          notification.request.content.title,
+          notification.request.content.body,
+          "reminder",
+          createID(),
+          setNotifsDatas
+        );
+        console.log(notification.date, notification);
       });
 
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log(response);
+        console.log("response notif", response);
       });
 
     return () => {
@@ -60,7 +58,6 @@ export default function RootLayout() {
         Notifications.removeNotificationSubscription(responseListener.current);
     };
   }, []);
-  const colorScheme = useColorScheme();
   const [fontsLoaded, error] = useFonts({
     "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
     "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
@@ -82,20 +79,10 @@ export default function RootLayout() {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(stack)" options={{ headerShown: false }} />
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="+not-found" />
     </Stack>
   );
-}
-async function schedulePushNotification() {
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: "You've got mail! 📬",
-      body: "Here is the notification body",
-      data: { data: "goes here", test: { test1: "more data" } },
-    },
-    trigger: { seconds: 2 },
-  });
 }
 
 async function registerForPushNotificationsAsync() {
@@ -135,7 +122,6 @@ async function registerForPushNotificationsAsync() {
           projectId,
         })
       ).data;
-      console.log(token);
     } catch (e) {
       token = `${e}`;
     }

@@ -1,9 +1,3 @@
-import calendar from "../assets/icons/Group.png";
-import bell from "../assets/icons/bell.png";
-import notificationBell from "../assets/icons/btnNotifications.png";
+import work from "../assets/icons/work.png";
 
-export default {
-  calendar,
-  bell,
-  notificationBell,
-};
+export default { work };
